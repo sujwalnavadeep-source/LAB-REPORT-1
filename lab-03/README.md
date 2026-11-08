@@ -540,7 +540,11 @@ The errors below are the ones that were actually seen and fixed.
 
 | Error | Message I saw | Cause | Fix |
 | --- | --- | --- | --- |
-| [TO BE FILLED BY STUDENT with the real errors and messages from the faculty's broken project] | | | |
+| Missing JSON Body Parser | `TypeError: Cannot destructure property 'title' of 'request.body' as it is undefined.` | `app.use(express.json())` middleware was missing, leaving `request.body` undefined on POST and PUT requests. | Added `app.use(express.json())` before registering route handlers. |
+| Missing `await` on Database Call | Client received `{}` (empty object) instead of the list of books | `db.all(sql, values)` returned an unresolved Promise because `await` was omitted. | Marked the route handler as `async` and added `await db.all(...)`. |
+| Dynamic `ORDER BY` Syntax Error | `SQLITE_ERROR: near "?": syntax error` when sorting | Column names and sort directions cannot use SQL parameter placeholders (`?`). | Checked `order_by` against a whitelist of valid columns (`id`, `title`, `author`, `price`, `pages`) and `order` against `ASC`/`DESC` before interpolating into the query string. |
+| Incorrect Status Code on Creation | Postman test failed: `expected response to have status code 201 but got 200` | The `POST /books/` route sent the default HTTP status code 200. | Changed response to `response.status(201).json({ id: result.lastID })`. |
+| Non-Numeric Book ID Handling | `GET /books/abc/` returned 404 or SQLite cast error instead of 400 | Route parameter `:bookId` was passed directly to the database without validating numeric format. | Added `parseBookId()` helper to validate that ID is a positive whole number, returning `400 Bad Request` with `{ message: "Invalid book ID. It must be a positive whole number." }` if invalid. |
 
 ---
 
